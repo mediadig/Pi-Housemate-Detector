@@ -25,7 +25,7 @@ if len(housemates) != len(pins):
     print "housemates and pins arrays are different lengths! Exiting"
     exit()
     
-# Array to hold timeout counter for each housemate
+# Array to hold last detected time for each housemate
 detectedTime = [datetime(2000,1,1)] * len(housemates)
 
 # Array to hold previous detected status of device, reduces unnecessary printing and GPIO operations
@@ -58,6 +58,8 @@ def monitor(i):
             # If the previous status was not detected
             if previousStatus[i] == False:
                 print(housemates[i] + "'s device detected @") , datetime.now()
+                
+                # Turn the LED on
                 GPIO.output(pins[i], GPIO.HIGH)
             
             # When a device is detected, reset the timeout counter
@@ -74,6 +76,8 @@ def monitor(i):
                 # If the previous status was detected
                 if previousStatus[i]:
                     print(housemates[i] + "'s device timed out @") , datetime.now()
+                    
+                    # Turn the LED off
                     GPIO.output(pins[i], GPIO.LOW)
 
                 # Set the previous status to not detected
@@ -97,6 +101,7 @@ try:
     global interrupted
     interrupted = False
     
+    # This specifies how long a device has to undetected for before we consider the person away
     global timeoutDelta 
     timeoutDelta = timedelta(seconds=300)
     
@@ -105,8 +110,7 @@ try:
         t = Thread(target=monitor, args=(i,))
         t.start()
 
-    while True:
-        
+    while True:        
         # Make global output to contain result of arp-scan
         global output
         output = subprocess.check_output("arp-scan -l", shell=True)
